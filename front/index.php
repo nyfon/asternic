@@ -167,6 +167,9 @@ $res->free();
 	}
 
 	function agent_matches_selected_queue(agent_name, selected_queues) {
+		if (selected_queues.indexOf("all") !== -1) {
+			return true;
+		}
 		for (var i = 0; i < selected_queues.length; i++) {
 			if (agent_name.indexOf(selected_queues[i] + "_") === 0) {
 				return true;
@@ -418,6 +421,9 @@ function remove_quotes($argument) {
 }
 
 function agent_matches_queue_name($agent_name, $selected_queues) {
+	if (in_array("all", $selected_queues)) {
+		return true;
+	}
 	foreach ($selected_queues as $selected_queue) {
 		if ($selected_queue === "NONE") {
 			continue;
@@ -458,6 +464,9 @@ foreach ($colas as $queueel) {
 		echo "<option value=\"'$queueel'\">$queueel</option>\n";
 	}
 }
+if (!in_array("all", $items_cola)) {
+	echo "<option value=\"'all'\">all</option>\n";
+}
 ?>
     </select>
 </td>
@@ -474,7 +483,7 @@ foreach ($colas as $queueel) {
     <select size=10 name="List_Queue[]" multiple="multiple" style="height: 100px;width: 125px;" id="myform_List_Queue_to" onDblClick="List_move_around('left',false,'queues');" >
 		<?php
 foreach ($items_cola as $queueel) {
-	if ($queueel != "NONE") {
+	if ($queueel != "NONE" && ($queueel == "all" || in_array($queueel, $colas))) {
 		echo "<option value=\"'$queueel'\">$queueel</option>\n";
 	}
 }

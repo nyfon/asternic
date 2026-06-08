@@ -47,14 +47,44 @@ function is_casdoor_enabled() {
     return get_auth_provider() === 'casdoor';
 }
 
+function normalize_username_for_permissions($username) {
+    $username = trim((string)$username);
+
+    if ($username === '') {
+        return '';
+    }
+
+    $at_position = strpos($username, '@');
+    if ($at_position !== false) {
+        return substr($username, 0, $at_position);
+    }
+
+    return $username;
+}
+
+function get_casdoor_username($user_info) {
+    $username = $user_info['preferred_username'] ?? '';
+
+    if ($username === '') {
+        $username = $user_info['name'] ?? '';
+    }
+
+    if ($username === '') {
+        $username = $user_info['email'] ?? '';
+    }
+
+    return normalize_username_for_permissions($username);
+}
+
 function get_authenticated_user() {
     if (isset($_SESSION['auth_user']) && is_array($_SESSION['auth_user'])) {
+        $_SESSION['auth_user']['username'] = normalize_username_for_permissions($_SESSION['auth_user']['username'] ?? '');
         return $_SESSION['auth_user'];
     }
 
     if (isset($_SESSION['casdoor_user']) && is_array($_SESSION['casdoor_user'])) {
         return [
-            'username' => $_SESSION['casdoor_user']['username'] ?? '',
+            'username' => normalize_username_for_permissions($_SESSION['casdoor_user']['username'] ?? ''),
             'name' => $_SESSION['casdoor_user']['name'] ?? ($_SESSION['casdoor_user']['username'] ?? ''),
             'provider' => 'casdoor'
         ];
@@ -65,7 +95,7 @@ function get_authenticated_user() {
 
 function get_authenticated_username() {
     $user = get_authenticated_user();
-    return $user['username'] ?? '';
+    return normalize_username_for_permissions($user['username'] ?? '');
 }
 
 function check_auth() {
@@ -149,6 +179,7 @@ function get_internal_users() {
 }
 
 function get_allowed_queues_for_user($username) {
+    $username = normalize_username_for_permissions($username);
     $config = get_access_control_config();
     $permissions = is_array($config['queue_permissions']) ? $config['queue_permissions'] : [];
 
